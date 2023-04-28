@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "calculators"
+version = "0.1.0"
+description = "A dashboard of physics calculators"
+authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+slapdash = "^1.0.1"
+
+[tool.poetry.dev-dependencies]
+autopep8 = "^1.5.4"
+flake8 = "^4.0.1"
+
+[tool.poetry.scripts]
+calculators = "calculators.main:main"
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
