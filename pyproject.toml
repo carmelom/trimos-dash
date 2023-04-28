@@ -3,10 +3,15 @@ name = "calculators"
 version = "0.1.0"
 description = "A dashboard of physics calculators"
 authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
+packages = [
+     { include = "mode_solver" },
+  ]
+
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = ">=3.8,<3.12"
 slapdash = "^1.0.1"
+pytrans = {path = "deps/pytrans", develop = true}
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
@@ -14,6 +19,7 @@ flake8 = "^4.0.1"
 
 [tool.poetry.scripts]
 calculators = "calculators.main:main"
+mode_solver = "mode_solver.main:main"
 
 [build-system]
 requires = ["poetry_core>=1.0.0"]

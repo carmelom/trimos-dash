@@ -11,11 +11,11 @@ import os
 import slapdash
 from slapdash import Saver
 
-PORT = 8000
+PORT = 8001
 
 
-@Saver('settings/settings.json')
-class Calculators:
+@Saver('settings/mode_solver_settings.json')
+class ModeSolver:
 
     voltage: float = 0.0
     power: bool = False
@@ -24,11 +24,11 @@ class Calculators:
         self.voltage = 0.0
 
     def __repr__(self):
-        return "calculators"
+        return "Mode Solver"
 
 
 def main():
-    plugin = Calculators()
+    plugin = ModeSolver()
     slapdash.run(plugin,
                  host='0.0.0.0',
                  port=PORT,
