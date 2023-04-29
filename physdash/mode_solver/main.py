@@ -16,8 +16,6 @@ from pytrans.analysis.mode_solver import HarmonicTrap
 from pytrans.analysis import analyse_potential
 from pytrans.plotting.plotting import plot3d_make_layout, plot3d_potential
 
-from enum import Enum
-
 import base64
 from io import BytesIO
 

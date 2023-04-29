@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "calculators"
+name = "physdash"
 version = "0.1.0"
 description = "A dashboard of physics calculators"
 authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
@@ -18,8 +18,7 @@ autopep8 = "^1.5.4"
 flake8 = "^4.0.1"
 
 [tool.poetry.scripts]
-calculators = "calculators.main:main"
-mode_solver = "mode_solver.main:main"
+mode_solver = "physdash.mode_solver.main:main"
 
 [build-system]
 requires = ["poetry_core>=1.0.0"]
