@@ -11,10 +11,12 @@ import os
 import slapdash
 from slapdash import Saver, trigger_update
 
-from pytrans import ions as ptions
-from pytrans.analysis.mode_solver import HarmonicTrap
-from pytrans.analysis import analyse_potential
-from pytrans.plotting.plotting import plot3d_make_layout, plot3d_potential
+from mode_solver import ions as ptions
+from mode_solver.potential import HarmonicPaulTrapPotential
+from mode_solver.solver import init_crystal
+from mode_solver import mode_solver
+
+import matplotlib.pyplot as plt
 
 import base64
 from io import BytesIO
@@ -43,6 +45,8 @@ class ModeSolverDashboard:
     _mode_plot: str = ""
     _mode_report: str = ""
 
+    n_ions: int = 2
+
     _metadata = {
         'mode_plot': {"renderAs": 'image'},
         'mode_report': {"renderAs": 'textarea'},
@@ -55,17 +59,20 @@ class ModeSolverDashboard:
     @trigger_update("mode_report")
     def solve(self):
         ion = ptions.Ca40
-        trap = HarmonicTrap(**self.trap_parameters._freqs(), ion=ion)
+        pot = HarmonicPaulTrapPotential(**self.trap_parameters._freqs(), ion=ion)
 
-        ions = [ion] * 4
+        n_ions = self.n_ions
+        ions = [ion] * n_ions
         r0 = (0, 0, 0)
-        roi = (400e-6, 30e-6, 30e-6)
-        self._results = analyse_potential(trap, None, ions, r0, roi=roi, verbose=False, plot=False)
+        # roi = (400e-6, 30e-6, 30e-6)
+        x0 = init_crystal(r0, dx=5e-6, n_ions=n_ions)
+        self._results = mode_solver(pot, ions, x0)
 
-        self._fig, self._axes = plot3d_make_layout(n=1)
+        self._fig, ax = plt.subplots()
 
-        plot3d_potential(trap, None, ion, self._results.x_eq, roi,
-                         axes=self._axes, analyse_results=self._results)
+        x_eq = self._results.x_eq[:, 0]
+        ax.plot(x_eq, 'o')
+
         self._mode_plot = _fig_to_str(self._fig)
         self._mode_report = str(self._results)
 
