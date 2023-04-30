@@ -1,0 +1,37 @@
+#slapdash {
+    max-width: unset;
+}
+
+[id="mode_report"] {
+    flex-basis: 100%;
+}
+
+[id="mode_plot"] {
+    flex-basis: 100%;
+}
+
+.form-control[name="mode_report"] {
+    font-family: monospace;
+    height: 150px;
+    box-sizing: border-box;
+    resize: both;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: scroll;
+}
+
+[id^="trap_parameters.f"] {
+    flex-basis: 30%;
+}
+
+.numeric[id^="roi"] {
+    flex-basis: 30%;
+}
+
+[id^="field_parameters.add_field"] {
+    flex-basis: auto !important;
+}
+
+[id^="field_parameters.field_"] {
+    flex-basis: 30%;
+}

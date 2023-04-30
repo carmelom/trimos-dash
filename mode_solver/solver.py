@@ -63,12 +63,13 @@ def mode_solver(pot: Potential, ions: List[Ion], x0: NCoords,
 
     res = minimize(fun, x0.ravel(), method='TNC', jac=jac, bounds=bounds, options=options)
     x_eq = res.x.reshape((N, d))
-    pot_pot = pot.potential(x_eq, masses_amu)
+    pot_eq = pot.potential(x_eq, masses_amu)
     hess = hess(res.x)
 
-    result = ModeSolverResults(ions=ions, x0=x0, x_eq=x_eq,
+    result = ModeSolverResults(pot=pot,
+                               ions=ions, x0=x0, x_eq=x_eq,
                                fun=res.fun, jac=res.jac, hess=hess,
-                               trap_pot=pot_pot,
+                               pot_eq=pot_eq,
                                minimize_results=res)
 
     return result

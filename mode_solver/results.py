@@ -11,13 +11,15 @@ from typing import List
 from tabulate import tabulate
 
 from .ions import Ion, atomic_mass, elementary_charge
+from .potential import Potential
 from colorama import init as colorama_init, Fore
 
 colorama_init(autoreset=True)
 
 
-def _color_str(color, str):
-    return f"{color}{str:s}{Fore.RESET}"
+def _color_str(color, _str):
+    # return f"{color}{_str:s}{Fore.RESET}"
+    return _str
 
 
 def _curv_to_freq(curv, mass=None, charge=None, ion: Ion = None):
@@ -83,16 +85,17 @@ class ModeSolverResults(Results):
         minimize_result: minimization result returned by scipy.minimize
     """
 
-    def __init__(self, ions: List[Ion], x0, x_eq, fun, jac, hess, trap_pot, minimize_results, title=''):
+    def __init__(self, pot: Potential, ions: List[Ion], x0, x_eq, fun, jac, hess, pot_eq, minimize_results, title=''):
         super().__init__()
         mode_freqs, mode_vectors = _diagonalize_hessian(ions, hess)
+        self.pot = pot
         self.x0 = x0
         self.ions = ions
         self.x_eq = x_eq
         self.fun = fun
         self.jac = jac
         self.hess = hess
-        self.trap_pot = trap_pot
+        self.pot_eq = pot_eq
         self.mode_freqs = mode_freqs
         self.mode_vectors = mode_vectors
         self.minimize_results = minimize_results

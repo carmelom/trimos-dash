@@ -11,21 +11,11 @@ import os
 import slapdash
 from slapdash import Saver, trigger_update
 
-from mode_solver import ions as ptions
-from mode_solver.potential import HarmonicPaulTrapPotential
+from mode_solver import ions as mions
+from mode_solver import potential as mpot
 from mode_solver.solver import init_crystal
 from mode_solver import mode_solver
-
-import matplotlib.pyplot as plt
-
-import base64
-from io import BytesIO
-
-
-def _fig_to_str(fig):
-    tmpfile = BytesIO()
-    fig.savefig(tmpfile, format='png')
-    return base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+from .plotter import Plotter
 
 
 class HarmonicTrapParameters:
@@ -37,29 +27,45 @@ class HarmonicTrapParameters:
     _metadata = {f"f{j}": {"units": 'MHz'} for j in 'xyz'}
 
     def _freqs(self):
-        return {f"f{j}": getattr(self, f"f{j}") * 1e6 for j in 'xyz'}
+        return [getattr(self, f"f{j}") * 1e6 for j in 'xyz']
+
+
+class FieldXParameters:
+
+    add_field: bool = False
+    field_x: float = 0.0
+    field_y: float = 0.0
+    field_z: float = 0.0
+
+    _metadata = {f"field_{j}": {"units": "V/m"} for j in "xyz"}
+
+    def _fields(self):
+        return [-getattr(self, f"field_{j}") for j in "xyz"]
 
 
 class ModeSolverDashboard:
 
-    _mode_plot: str = ""
+    n_ions: int = 2
     _mode_report: str = ""
 
-    n_ions: int = 2
-
     _metadata = {
-        'mode_plot': {"renderAs": 'image'},
         'mode_report': {"renderAs": 'textarea'},
     }
 
     def __init__(self):
         self.trap_parameters = HarmonicTrapParameters()
+        self.field_parameters = FieldXParameters()
+        self.plots = Plotter()
 
-    @trigger_update("mode_plot")
+    @trigger_update("plots.x_eq")
+    @trigger_update("plots.potential")
     @trigger_update("mode_report")
     def solve(self):
-        ion = ptions.Ca40
-        pot = HarmonicPaulTrapPotential(**self.trap_parameters._freqs(), ion=ion)
+        ion = mions.Ca40
+        pot = mpot.HarmonicPaulTrapPotential(*self.trap_parameters._freqs(), ion=ion)
+
+        if self.field_parameters.add_field:
+            pot = pot + mpot.LinearPotential(self.field_parameters._fields())
 
         n_ions = self.n_ions
         ions = [ion] * n_ions
@@ -67,18 +73,8 @@ class ModeSolverDashboard:
         # roi = (400e-6, 30e-6, 30e-6)
         x0 = init_crystal(r0, dx=5e-6, n_ions=n_ions)
         self._results = mode_solver(pot, ions, x0)
-
-        self._fig, ax = plt.subplots()
-
-        x_eq = self._results.x_eq[:, 0]
-        ax.plot(x_eq, 'o')
-
-        self._mode_plot = _fig_to_str(self._fig)
-        self._mode_report = str(self._results)
-
-    @property
-    def mode_plot(self) -> str:
-        return self._mode_plot
+        self.plots._update(self._results)
+        self._mode_report = repr(self._results)
 
     @property
     def mode_report(self) -> str:
