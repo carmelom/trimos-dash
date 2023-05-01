@@ -73,7 +73,6 @@ class EquilibriumPositionPlotter(Plotter):
 
         line_x, = ax_x.plot([], [], 'o')
         ax_x.set(
-            ylim=(-1.05, 1.05),
             xlabel="x [um]",
             ylabel="y [um]"
         )
@@ -82,10 +81,11 @@ class EquilibriumPositionPlotter(Plotter):
 
     def _update(self, results: ModeSolverResults):
         line_x, = self._artists
+        ax = line_x.axes
         x, y = results.x_eq[:, 0:2].T * 1e6
         line_x.set_data(x, y)
-        line_x.axes.relim()
-        line_x.axes.autoscale_view(scaley=False)
+        ax.relim()
+        ax.autoscale_view()
 
 
 class AxialPotentialPlotter(Plotter):

@@ -11,18 +11,19 @@ import os
 import slapdash
 from slapdash import Saver, trigger_update
 
-from mode_solver import ions as mions
 from mode_solver import potential as mpot
 from mode_solver.solver import init_crystal
 from mode_solver import mode_solver
+from .ions import Ions, parse_ion_string
 from .plotter import PlotDashboard
 
 
 class HarmonicTrapParameters:
 
     fx: float = 1.0
-    fy: float = 1.0
-    fz: float = 1.0
+    fy: float = 1.1
+    fz: float = 3.0
+    target_ion: Ions = Ions.CA40
 
     _metadata = {f"f{j}": {"units": 'MHz'} for j in 'xyz'}
 
@@ -30,7 +31,7 @@ class HarmonicTrapParameters:
         return [getattr(self, f"f{j}") * 1e6 for j in 'xyz']
 
 
-class FieldXParameters:
+class FieldParameters:
 
     add_field: bool = False
     field_x: float = 0.0
@@ -61,7 +62,6 @@ class QuarticParameters:
 
 class ModeSolverDashboard:
 
-    n_ions: int = 2
     _mode_report: str = ""
 
     _metadata = {
@@ -70,14 +70,15 @@ class ModeSolverDashboard:
 
     def __init__(self):
         self.trap_parameters = HarmonicTrapParameters()
-        self.field_parameters = FieldXParameters()
+        self.field_parameters = FieldParameters()
         self.cubic_parameters = CubicParameters()
         self.quartic_parameters = QuarticParameters()
+        self.ion_string: str = "Ca40 * 2"
         self.plots = PlotDashboard()
 
     @trigger_update("mode_report")
     def solve(self):
-        ion = mions.Ca40
+        ion = self.trap_parameters.target_ion._get_ion()
         pot = mpot.HarmonicPaulTrapPotential(*self.trap_parameters._freqs(), ion=ion)
 
         if self.field_parameters.add_field:
@@ -89,11 +90,10 @@ class ModeSolverDashboard:
         if self.quartic_parameters.add_quartic:
             pot = pot + mpot.QuarticPotential(self.quartic_parameters.quartic_x * 1e18)
 
-        n_ions = self.n_ions
-        ions = [ion] * n_ions
-        r0 = (0, 0, 0)
+        ions = parse_ion_string(self.ion_string)
         # roi = (400e-6, 30e-6, 30e-6)
-        x0 = init_crystal(r0, dx=10e-6, n_ions=n_ions)
+        n_ions = len(ions)
+        x0 = init_crystal((0, 0, 0), dx=5e-6, n_ions=n_ions)
         self._results = mode_solver(pot, ions, x0)
         self.plots._update(self._results)
         self._mode_report = repr(self._results)

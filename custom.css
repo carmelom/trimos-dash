@@ -2,6 +2,14 @@
     max-width: unset;
 }
 
+#ion_string {
+    order: -2;
+}
+
+#solve {
+    order: -1;
+}
+
 [id="mode_report"] {
     flex-basis: 100%;
 }

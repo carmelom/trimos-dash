@@ -75,7 +75,7 @@ def mode_solver(pot: Potential, ions: List[Ion], x0: NCoords,
     return result
 
 
-def init_crystal(r0: Position, dx: float, n_ions: int) -> NCoords:
+def init_crystal(r0: Position, dx: float, n_ions: int, randomize=True) -> NCoords:
     """initialize positions of particles in a 1D crystal
     equally spaced by dx along the x axis
 
@@ -92,4 +92,6 @@ def init_crystal(r0: Position, dx: float, n_ions: int) -> NCoords:
     X[:, 0] = np.linspace(-n_ions / 2 * dx, n_ions / 2 * dx, n_ions) + x0
     X[:, 1] = y0
     X[:, 2] = z0
+    if randomize:
+        X += np.random.rand(n_ions, 3) * 1e-8
     return X
