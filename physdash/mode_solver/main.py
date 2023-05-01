@@ -51,6 +51,14 @@ class CubicParameters:
     _metadata = {"cubic_x": {"units": "1e12 V/m^3"}}
 
 
+class QuarticParameters:
+
+    add_quartic: bool = False
+    quartic_x: float = 0.0
+
+    _metadata = {"quartic_x": {"units": "1e18 V/m^4"}}
+
+
 class ModeSolverDashboard:
 
     n_ions: int = 2
@@ -64,6 +72,7 @@ class ModeSolverDashboard:
         self.trap_parameters = HarmonicTrapParameters()
         self.field_parameters = FieldXParameters()
         self.cubic_parameters = CubicParameters()
+        self.quartic_parameters = QuarticParameters()
         self.plots = Plotter()
 
     @trigger_update("mode_report")
@@ -76,6 +85,9 @@ class ModeSolverDashboard:
 
         if self.cubic_parameters.add_cubic:
             pot = pot + mpot.CubicPotential(self.cubic_parameters.cubic_x * 1e12)
+
+        if self.quartic_parameters.add_quartic:
+            pot = pot + mpot.QuarticPotential(self.quartic_parameters.quartic_x * 1e18)
 
         n_ions = self.n_ions
         ions = [ion] * n_ions

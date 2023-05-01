@@ -23,11 +23,9 @@ class PlotROI:
     x: float = 30
     y: float = 8
     z: float = 8
-    x_slice: float = 0.0
     _num: int = 60
 
     _metadata = {f"{j}": {"units": "um"} for j in "xyz"}
-    _metadata['x_slice'] = {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
 
     def _xyz(self):
         return (
@@ -47,10 +45,12 @@ class Plotter:
         'x_eq': {"renderAs": 'image'},
         'potential': {"renderAs": 'image'},
         'ax_yz': {"renderAs": 'image'},
+        'x_slice': {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
     }
 
     def __init__(self):
         self.roi = PlotROI()
+        self.x_slice: float = 0.0
         self._fig_x_eq, ax_x = plt.subplots(figsize=(5, 2), dpi=100)
         self._fig_potential, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
         self._fig_yz, ax_yz = plt.subplots(figsize=(3, 3), dpi=100)
@@ -104,7 +104,7 @@ class Plotter:
         y, z = np.meshgrid(y, z)
         shape = y.shape
         y1, z1 = y.ravel(), z.ravel()
-        x1 = np.ones_like(y1) * self.roi.x_slice
+        x1 = np.ones_like(y1) * self.x_slice
         X = np.stack([x1, y1, z1], axis=1)
         pot = results.pot.potential(X, 1).reshape(shape)
         ax_yz.clear()

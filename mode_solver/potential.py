@@ -7,6 +7,7 @@
 
 import numpy as np
 from scipy.constants import pi, atomic_mass
+from itertools import permutations
 from .ions import Ion
 from nptyping import NDArray, Shape, Float
 from .typing import NCoords, NData
@@ -37,7 +38,7 @@ class CombinedPotential(Potential):
 class HarmonicPaulTrapPotential(Potential):
 
     def __init__(self, fx, fy, fz, ion: Ion, stray_field=[0, 0, 0]):
-        wx2, wy2, wz2 = (2 * pi * fx)**2, (2 * pi * fy)**2, (2 * pi * fz)**2
+        wx2, wy2, wz2 = np.sign(fx) * (2 * pi * fx)**2, (2 * pi * fy)**2, (2 * pi * fz)**2
         c_x = ion.mass / ion.charge * wx2
         c_dc = ion.mass / ion.charge * (wy2 - wz2) / 2
         m_c_rf = ion.mass**2 / ion.charge * (wx2 + wy2 + wz2) / 2
@@ -90,8 +91,10 @@ class CubicPotential(Potential):
     def __init__(self, a_cubic: float):
         self._C = np.zeros((1, 3, 3, 3))
         self._C[0, 0, 0, 0] = a_cubic
-        self._C[0, 0, 1, 1] = self._C[0, 1, 1, 0] = self._C[0, 1, 0, 1] = - a_cubic / 2
-        self._C[0, 0, 2, 2] = self._C[0, 2, 2, 0] = self._C[0, 2, 0, 2] = - a_cubic / 2
+        for p in set(permutations((0, 1, 1))):
+            self._C[(0,) + p] = - a_cubic / 2
+        for p in set(permutations((0, 2, 2))):
+            self._C[(0,) + p] = - a_cubic / 2
 
     def potential(self, X: NCoords, mass_amu: NData):
         return (1 / 6.) * np.einsum('...abc,...a,...b,...c', self._C, X, X, X)
@@ -101,3 +104,22 @@ class CubicPotential(Potential):
 
     def hessian(self, X: NCoords, mass_amu: NData):
         return np.einsum('...ija,...a', self._C, X)
+
+
+class QuarticPotential(Potential):
+    def __init__(self, a_quartic: float):
+        self._C = np.zeros((1,) + (3,) * 4)
+        self._C[0, 0, 0, 0, 0] = a_quartic
+        for p in set(permutations((0, 0, 1, 1))):
+            self._C[(0,) + p] = - a_quartic / 2
+        for p in set(permutations((0, 0, 2, 2))):
+            self._C[(0,) + p] = - a_quartic / 2
+
+    def potential(self, X: NCoords, mass_amu: NData):
+        return (1 / 24.) * np.einsum('...abcd,...a,...b,...c,...d', self._C, X, X, X, X)
+
+    def gradient(self, X: NCoords, mass_amu: NData):
+        return (1 / 6.) * np.einsum('...jabc,...a,...b,...c', self._C, X, X, X)
+
+    def hessian(self, X: NCoords, mass_amu: NData):
+        return 0.5 * np.einsum('...ijab,...a,...b', self._C, X, X)
