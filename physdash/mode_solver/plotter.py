@@ -4,6 +4,7 @@
 # Created: 04/2023
 # Author: Carmelo Mordini <cmordini@phys.ethz.ch>
 
+import inspect
 import numpy as np
 import matplotlib.pyplot as plt
 from mode_solver.results import ModeSolverResults
@@ -23,9 +24,14 @@ class PlotROI:
     x: float = 30
     y: float = 8
     z: float = 8
+    x_slice: float = 0.0
+
     _num: int = 60
 
-    _metadata = {f"{j}": {"units": "um"} for j in "xyz"}
+    _metadata = {
+        'x': {"units": "um"}, 'y': {"units": "um"}, 'z': {"units": "um"},
+        'x_slice': {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
+    }
 
     def _xyz(self):
         return (
@@ -36,24 +42,34 @@ class PlotROI:
 
 
 class Plotter:
-    _plot_x_eq: str = ""
-    _plot_potential: str = ""
-    _plot_yz: str = ""
-    _results: ModeSolverResults = None
+    _plot: str = ""
+    _fig: plt.Figure = None
+    _artists: list = []
 
     _metadata = {
-        'x_eq': {"renderAs": 'image'},
-        'potential': {"renderAs": 'image'},
-        'ax_yz': {"renderAs": 'image'},
-        'x_slice': {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
+        'plot': {"renderAs": 'image'},
     }
 
-    def __init__(self):
-        self.roi = PlotROI()
-        self.x_slice: float = 0.0
-        self._fig_x_eq, ax_x = plt.subplots(figsize=(5, 2), dpi=100)
-        self._fig_potential, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
-        self._fig_yz, ax_yz = plt.subplots(figsize=(3, 3), dpi=100)
+    def __init__(self, roi: PlotROI):
+        self._roi = roi
+
+    @trigger_update("plot")
+    def _show(self):
+        self._plot = _fig_to_str(self._fig)
+
+    def _update(self, results: ModeSolverResults):
+        raise NotImplementedError()
+
+    @property
+    def plot(self) -> str:
+        return self._plot
+
+
+class EquilibriumPositionPlotter(Plotter):
+
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._fig, ax_x = plt.subplots(figsize=(5, 2), dpi=100)
 
         line_x, = ax_x.plot([], [], 'o')
         ax_x.set(
@@ -61,36 +77,33 @@ class Plotter:
             xlabel="x [um]",
             ylabel="y [um]"
         )
+        self._fig.tight_layout()
+        self._artists = [line_x]
 
+    def _update(self, results: ModeSolverResults):
+        line_x, = self._artists
+        x, y = results.x_eq[:, 0:2].T * 1e6
+        line_x.set_data(x, y)
+        line_x.axes.relim()
+        line_x.axes.autoscale_view(scaley=False)
+
+
+class AxialPotentialPlotter(Plotter):
+
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._fig, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
         line_pot, = ax_pot.plot([], [], marker='none', ls='-')
         ax_pot.set(
             xlabel="x [um]",
             ylabel="$\\phi$ [V]"
         )
+        self._fig.tight_layout()
+        self._artists = [line_pot]
 
-        ax_yz.set(
-            xlabel="y [um]",
-            ylabel="z [um]",
-        )
-
-        self._fig_x_eq.tight_layout()
-        self._fig_potential.tight_layout()
-        self._fig_yz.tight_layout()
-        self._artists = [line_x, line_pot, ax_yz]
-
-    @trigger_update("x_eq")
-    @trigger_update("potential")
-    @trigger_update("ax_yz")
-    def _update(self, results: ModeSolverResults):
-        self._results = results
-        line_x, line_pot, ax_yz = self._artists
-        x, y = results.x_eq[:, 0:2].T * 1e6
-        line_x.set_data(x, y)
-        line_x.axes.relim()
-        line_x.axes.autoscale_view(scaley=False)
-        self._plot_x_eq = _fig_to_str(self._fig_x_eq)
-
-        X = self.roi._xyz()
+    def _update(self, results):
+        line_pot, = self._artists
+        X = self._roi._xyz()
         X = np.stack(X, axis=1)
         x, y, z = X.T.copy()
 
@@ -99,29 +112,46 @@ class Plotter:
         line_pot.set_data(x * 1e6, pot)
         line_pot.axes.relim()
         line_pot.axes.autoscale_view()
-        self._plot_potential = _fig_to_str(self._fig_potential)
 
+
+class RadialPotentialPlotter(Plotter):
+
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._fig, self._ax = plt.subplots(figsize=(3, 3), dpi=100)
+        self._ax.set(
+            xlabel="y [um]",
+            ylabel="z [um]",
+        )
+        self._fig.tight_layout()
+
+    def _update(self, results):
+        x, y, z = self._roi._xyz()
         y, z = np.meshgrid(y, z)
         shape = y.shape
         y1, z1 = y.ravel(), z.ravel()
-        x1 = np.ones_like(y1) * self.x_slice
+        x1 = np.ones_like(y1) * self._roi.x_slice
         X = np.stack([x1, y1, z1], axis=1)
         pot = results.pot.potential(X, 1).reshape(shape)
-        ax_yz.clear()
-        ax_yz.contour(y * 1e6, z * 1e6, pot, 50)
-        self._plot_yz = _fig_to_str(self._fig_yz)
+        self._ax.clear()
+        self._ax.contour(y * 1e6, z * 1e6, pot, 50)
 
-    @property
-    def x_eq(self) -> str:
-        return self._plot_x_eq
 
-    @property
-    def potential(self) -> str:
-        return self._plot_potential
+class PlotDashboard:
+    _results: ModeSolverResults = None
 
-    @property
-    def ax_yz(self) -> str:
-        return self._plot_yz
+    def __init__(self):
+        self.roi = PlotROI()
+        self.equilibrium_position = EquilibriumPositionPlotter(self.roi)
+        self.axial_potential = AxialPotentialPlotter(self.roi)
+        self.radial_potential = RadialPotentialPlotter(self.roi)
 
-    def update(self):
-        self._update(self._results)
+        self._plotters = []
+        for _, plotter in inspect.getmembers(self, lambda obj: isinstance(obj, Plotter)):
+            self._plotters.append(plotter)
+
+    def _update(self, results: ModeSolverResults):
+        self._results = results
+        for plotter in self._plotters:
+            plotter._update(results)
+            plotter._show()

@@ -15,7 +15,7 @@ from mode_solver import ions as mions
 from mode_solver import potential as mpot
 from mode_solver.solver import init_crystal
 from mode_solver import mode_solver
-from .plotter import Plotter
+from .plotter import PlotDashboard
 
 
 class HarmonicTrapParameters:
@@ -73,7 +73,7 @@ class ModeSolverDashboard:
         self.field_parameters = FieldXParameters()
         self.cubic_parameters = CubicParameters()
         self.quartic_parameters = QuarticParameters()
-        self.plots = Plotter()
+        self.plots = PlotDashboard()
 
     @trigger_update("mode_report")
     def solve(self):

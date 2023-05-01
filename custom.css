@@ -24,11 +24,27 @@
     flex-basis: 30%;
 }
 
+[id="plots"] .group {
+    flex-basis: 45%
+}
+
+[id="plots"] .group h4 {
+    display: none;
+}
+
+[id="plots.roi"] {
+    flex-basis: 100% !important
+}
+
+[id="plots.roi"] h4 {
+    display: unset !important
+}
+
 [id^="plots.roi."] {
     flex-basis: 30%;
 }
 
-[id^="plots.x_slice"] {
+[id^="plots.roi.x_slice"] {
     flex-basis: 100%;
 }
 
