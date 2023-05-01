@@ -59,6 +59,7 @@ class ModeSolverDashboard:
 
     @trigger_update("plots.x_eq")
     @trigger_update("plots.potential")
+    @trigger_update("plots.ax_yz")
     @trigger_update("mode_report")
     def solve(self):
         ion = mions.Ca40
