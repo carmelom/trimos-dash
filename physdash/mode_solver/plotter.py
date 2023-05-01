@@ -7,6 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mode_solver.results import ModeSolverResults
+from slapdash import trigger_update
 
 import base64
 from io import BytesIO
@@ -22,9 +23,11 @@ class PlotROI:
     x: float = 30
     y: float = 8
     z: float = 8
+    x_slice: float = 0.0
     _num: int = 60
 
     _metadata = {f"{j}": {"units": "um"} for j in "xyz"}
+    _metadata['x_slice'] = {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
 
     def _xyz(self):
         return (
@@ -38,6 +41,7 @@ class Plotter:
     _plot_x_eq: str = ""
     _plot_potential: str = ""
     _plot_yz: str = ""
+    _results: ModeSolverResults = None
 
     _metadata = {
         'x_eq': {"renderAs": 'image'},
@@ -69,9 +73,16 @@ class Plotter:
             ylabel="z [um]",
         )
 
+        self._fig_x_eq.tight_layout()
+        self._fig_potential.tight_layout()
+        self._fig_yz.tight_layout()
         self._artists = [line_x, line_pot, ax_yz]
 
+    @trigger_update("x_eq")
+    @trigger_update("potential")
+    @trigger_update("ax_yz")
     def _update(self, results: ModeSolverResults):
+        self._results = results
         line_x, line_pot, ax_yz = self._artists
         x, y = results.x_eq[:, 0:2].T * 1e6
         line_x.set_data(x, y)
@@ -93,10 +104,11 @@ class Plotter:
         y, z = np.meshgrid(y, z)
         shape = y.shape
         y1, z1 = y.ravel(), z.ravel()
-        X = np.stack([np.zeros_like(y1), y1, z1], axis=1)
+        x1 = np.ones_like(y1) * self.roi.x_slice
+        X = np.stack([x1, y1, z1], axis=1)
         pot = results.pot.potential(X, 1).reshape(shape)
         ax_yz.clear()
-        ax_yz.contour(y, z, pot, 50)
+        ax_yz.contour(y * 1e6, z * 1e6, pot, 50)
         self._plot_yz = _fig_to_str(self._fig_yz)
 
     @property
@@ -110,3 +122,6 @@ class Plotter:
     @property
     def ax_yz(self) -> str:
         return self._plot_yz
+
+    def update(self):
+        self._update(self._results)

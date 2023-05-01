@@ -84,3 +84,20 @@ class LinearPotential(Potential):
 
     def hessian(self, X: NCoords, mass_amu: NData):
         return 0
+
+
+class CubicPotential(Potential):
+    def __init__(self, a_cubic: float):
+        self._C = np.zeros((1, 3, 3, 3))
+        self._C[0, 0, 0, 0] = a_cubic
+        self._C[0, 0, 1, 1] = self._C[0, 1, 1, 0] = self._C[0, 1, 0, 1] = - a_cubic / 2
+        self._C[0, 0, 2, 2] = self._C[0, 2, 2, 0] = self._C[0, 2, 0, 2] = - a_cubic / 2
+
+    def potential(self, X: NCoords, mass_amu: NData):
+        return (1 / 6.) * np.einsum('...abc,...a,...b,...c', self._C, X, X, X)
+
+    def gradient(self, X: NCoords, mass_amu: NData):
+        return 0.5 * np.einsum('...iab,...a,...b', self._C, X, X)
+
+    def hessian(self, X: NCoords, mass_amu: NData):
+        return np.einsum('...ija,...a', self._C, X)

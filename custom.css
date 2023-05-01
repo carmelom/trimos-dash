@@ -12,7 +12,7 @@
 
 .form-control[name="mode_report"] {
     font-family: monospace;
-    height: 150px;
+    height: 300px;
     box-sizing: border-box;
     resize: both;
     white-space: pre;
@@ -24,8 +24,12 @@
     flex-basis: 30%;
 }
 
-.numeric[id^="roi"] {
+[id^="plots.roi."] {
     flex-basis: 30%;
+}
+
+[id^="plots.x_slice"] {
+    flex-basis: 100%;
 }
 
 [id^="field_parameters.add_field"] {

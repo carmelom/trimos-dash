@@ -43,6 +43,14 @@ class FieldXParameters:
         return [-getattr(self, f"field_{j}") for j in "xyz"]
 
 
+class CubicParameters:
+
+    add_cubic: bool = False
+    cubic_x: float = 0.0
+
+    _metadata = {"cubic_x": {"units": "1e12 V/m^3"}}
+
+
 class ModeSolverDashboard:
 
     n_ions: int = 2
@@ -55,11 +63,9 @@ class ModeSolverDashboard:
     def __init__(self):
         self.trap_parameters = HarmonicTrapParameters()
         self.field_parameters = FieldXParameters()
+        self.cubic_parameters = CubicParameters()
         self.plots = Plotter()
 
-    @trigger_update("plots.x_eq")
-    @trigger_update("plots.potential")
-    @trigger_update("plots.ax_yz")
     @trigger_update("mode_report")
     def solve(self):
         ion = mions.Ca40
@@ -68,14 +74,18 @@ class ModeSolverDashboard:
         if self.field_parameters.add_field:
             pot = pot + mpot.LinearPotential(self.field_parameters._fields())
 
+        if self.cubic_parameters.add_cubic:
+            pot = pot + mpot.CubicPotential(self.cubic_parameters.cubic_x * 1e12)
+
         n_ions = self.n_ions
         ions = [ion] * n_ions
         r0 = (0, 0, 0)
         # roi = (400e-6, 30e-6, 30e-6)
-        x0 = init_crystal(r0, dx=5e-6, n_ions=n_ions)
+        x0 = init_crystal(r0, dx=10e-6, n_ions=n_ions)
         self._results = mode_solver(pot, ions, x0)
         self.plots._update(self._results)
         self._mode_report = repr(self._results)
+        print('solve done')
 
     @property
     def mode_report(self) -> str:
