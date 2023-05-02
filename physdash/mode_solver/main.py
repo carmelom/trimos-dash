@@ -11,9 +11,9 @@ import os
 import slapdash
 from slapdash import Saver, trigger_update
 
-from mode_solver import potential as mpot
-from mode_solver.solver import init_crystal
-from mode_solver import mode_solver
+from rf_trap_mode_solver import potential as mpot
+from rf_trap_mode_solver.solver import init_crystal
+from rf_trap_mode_solver import mode_solver
 from .ions import Ions, parse_ion_string
 from .plotter import PlotDashboard
 

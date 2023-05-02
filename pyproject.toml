@@ -3,15 +3,14 @@ name = "physdash"
 version = "0.1.0"
 description = "A dashboard of physics calculators"
 authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
-packages = [
-     { include = "mode_solver" },
-  ]
 
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.12"
 slapdash = "^1.0.1"
-pytrans = {path = "deps/pytrans", develop = true}
+matplotlib = "^3.7.1"
+pyqt5 = "^5.15.9"
+rf_trap_mode_solver = {path = "deps/rf_trap_mode_solver", develop = true}
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
