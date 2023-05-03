@@ -1,7 +1,7 @@
 .ONESHELL:
-.PHONY: prepare run clean services
+.PHONY: install run clean services
 
-prepare:
+install:
 	poetry install
 
 run:
