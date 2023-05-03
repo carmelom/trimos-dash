@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
-setup(name='rf_trap_mode_solver',
+setup(name='trimos',
       version="0.9.0",
-      description='A mode solver for RF ion traps',
+      description='ThRee dImensional MOde Solver for trapped ions',
       url='',
       author='Carmelo Mordini',
       author_email='cmordini@phys.ethz.ch',
-      python_requires='>=3.8',
+      python_requires='>=3.9',
       install_requires=[
           'numpy',
           'scipy',

@@ -1,15 +1,6 @@
-# Physdash
+# Mode solver Dashboard
 
-A dashboard of physics calculators
-
-## List of calculators
-
-Current and future:
-
-- [ ] Modes of an ion chain
-- [ ] Rabi couplings
-- [ ] Stark shifts and optical potentials
-- [ ] ...
+A dashboard to visualize normal modes of trapped ions - powered by TRIMOS[^1]
 
 ## Requirements
 
@@ -22,7 +13,7 @@ Current and future:
 
 ## Usage
 
-[...]
+    poetry run mode_solver_dashboard
 
 ## Makefile targets
 
@@ -42,3 +33,5 @@ Current and future:
 ## License
 
 MIT
+
+[^1]: ThRee dImensional MOde Solver for trapped ions

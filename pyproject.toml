@@ -1,23 +1,23 @@
 [tool.poetry]
-name = "physdash"
+name = "mode_solver_dashboard"
 version = "0.1.0"
-description = "A dashboard of physics calculators"
+description = "A dashboard for to visualize normal modes of trapped ions"
 authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
 
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.9,<3.12"
 slapdash = "^1.0.1"
 matplotlib = "^3.7.1"
 pyqt5 = "^5.15.9"
-rf_trap_mode_solver = {path = "deps/rf_trap_mode_solver", develop = true}
+trimos = {path = "deps/trimos", develop = true}
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
 flake8 = "^4.0.1"
 
 [tool.poetry.scripts]
-mode_solver = "physdash.mode_solver.main:main"
+mode_solver_dashboard = "mode_solver_dashboard.main:main"
 
 [build-system]
 requires = ["poetry_core>=1.0.0"]

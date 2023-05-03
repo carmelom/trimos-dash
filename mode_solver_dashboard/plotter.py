@@ -7,7 +7,7 @@
 import inspect
 import numpy as np
 import matplotlib.pyplot as plt
-from rf_trap_mode_solver.results import ModeSolverResults
+from trimos.results import ModeSolverResults
 from slapdash import trigger_update
 
 import base64

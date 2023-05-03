@@ -6,7 +6,7 @@
 
 import re
 from enum import Enum
-from rf_trap_mode_solver import ions as mions
+from trimos import ions as mions
 
 
 class Ions(Enum):
