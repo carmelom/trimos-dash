@@ -94,24 +94,29 @@ class AxialPotentialPlotter(Plotter):
         super().__init__(roi)
         self._fig, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
         line_pot, = ax_pot.plot([], [], marker='none', ls='-')
+        line_ions, = ax_pot.plot([], [], 'oC3')
         ax_pot.set(
             xlabel="x [um]",
             ylabel="$\\phi$ [V]"
         )
         self._fig.tight_layout()
-        self._artists = [line_pot]
+        self._artists = [line_pot, line_ions]
 
     def _update(self, results):
-        line_pot, = self._artists
+        line_pot, line_ions = self._artists
+        ax = line_pot.axes
         X = self._roi._xyz()
         X = np.stack(X, axis=1)
         x, y, z = X.T.copy()
 
         X[:, 1:3] = 0
         pot = results.pot.potential(X, 1)
+        x_eq = results.x_eq[:, 0]
+        pot_eq = results.pot_eq
         line_pot.set_data(x * 1e6, pot)
-        line_pot.axes.relim()
-        line_pot.axes.autoscale_view()
+        line_ions.set_data(x_eq * 1e6, pot_eq)
+        ax.relim()
+        ax.autoscale_view()
 
 
 class RadialPotentialPlotter(Plotter):
@@ -132,9 +137,11 @@ class RadialPotentialPlotter(Plotter):
         y1, z1 = y.ravel(), z.ravel()
         x1 = np.ones_like(y1) * self._roi.x_slice
         X = np.stack([x1, y1, z1], axis=1)
+        y_eq, z_eq = results.x_eq[:, 1:3].T
         pot = results.pot.potential(X, 1).reshape(shape)
         self._ax.clear()
         self._ax.contour(y * 1e6, z * 1e6, pot, 50)
+        self._ax.plot(y_eq * 1e6, z_eq * 1e6, 'oC3')
 
 
 class PlotDashboard:
