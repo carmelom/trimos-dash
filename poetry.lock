@@ -1041,7 +1041,7 @@ files = [
 [[package]]
 name = "trimos"
 version = "0.9.0"
-description = ""
+description = "ThRee dImensional MOde Solver for trapped ions"
 category = "main"
 optional = false
 python-versions = ">=3.9"

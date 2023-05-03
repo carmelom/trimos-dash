@@ -1,6 +1,6 @@
-# Mode solver Dashboard
+# Trimos-dash
 
-A dashboard to visualize normal modes of trapped ions - powered by [TRIMOS](https://github.com/carmelom/trimos) and [slapdash](https://github.com/cathaychris/slapdash)
+A dashboard to visualize normal modes of trapped ions - powered by [trimos](https://github.com/carmelom/trimos) and [slapdash](https://github.com/cathaychris/slapdash)
 
 ## Installation
 
@@ -8,7 +8,7 @@ A dashboard to visualize normal modes of trapped ions - powered by [TRIMOS](http
 
 ## Usage
 
-    poetry run mode_solver_dashboard
+    poetry run trimos_dash
 
 ## Authors and acknowledgment
 
@@ -21,6 +21,6 @@ MIT
 ## Makefile targets
 
 - `install`: install the required dependencies using poetry. On Windows, run `poetry install`.
-- `run`: run the dashboard. On Windows, `poetry run python mode_solver_dashboard`.
+- `run`: run the dashboard. On Windows, `poetry run python trimos_dash`.
 - `clean`: removes poetry lockfile and virtual environment.
 - `services` (Unix only): create and install a unit service file to run the dashboard server via `systemctl`.
