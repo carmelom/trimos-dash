@@ -1046,7 +1046,7 @@ category = "main"
 optional = false
 python-versions = ">=3.9"
 files = []
-develop = true
+develop = false
 
 [package.dependencies]
 colorama = "*"
@@ -1056,8 +1056,10 @@ scipy = "*"
 tabulate = "*"
 
 [package.source]
-type = "directory"
-url = "deps/trimos"
+type = "git"
+url = "https://github.com/carmelom/trimos.git"
+reference = "HEAD"
+resolved_reference = "95239cca300fe11c45af2af814bca38645d907fb"
 
 [[package]]
 name = "typing-extensions"
@@ -1205,4 +1207,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "6a33ac9295d84cd03c4d1a3c43026b896b92efe3e9dd8925b7ab988e05feb27e"
+content-hash = "73285d81b9b0fec4cda9e994865284deb14147af4849aeceab8018beed6b9b87"

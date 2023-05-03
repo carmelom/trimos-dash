@@ -10,7 +10,7 @@ python = ">=3.9,<3.12"
 slapdash = "^1.0.1"
 matplotlib = "^3.7.1"
 pyqt5 = "^5.15.9"
-trimos = {path = "deps/trimos", develop = true}
+trimos = {git = "https://github.com/carmelom/trimos.git"}
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
