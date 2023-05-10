@@ -20,10 +20,26 @@ def _fig_to_str(fig):
     return base64.b64encode(tmpfile.getvalue()).decode('utf-8')
 
 
+ion_colors = {
+    'Ca40': 'C3',
+    'Be9': 'C0',
+    'Mg24': 'cyan'
+}
+
+
+def _update_ions_scatter(scatter, x, y, ions):
+    ax = scatter.axes
+    col = [ion_colors[str(c)] for c in ions]
+    scatter.set(offsets=np.c_[x, y], color=col, zorder=99)
+    ax.ignore_existing_data_limits = True
+    ax.update_datalim(scatter.get_datalim(ax.transData))
+    ax.autoscale_view()
+
+
 class PlotROI:
-    x: float = 30
-    y: float = 8
-    z: float = 8
+    x: float = 30.0
+    y: float = 8.0
+    z: float = 8.0
     x_slice: float = 0.0
 
     _num: int = 60
@@ -71,21 +87,18 @@ class EquilibriumPositionPlotter(Plotter):
         super().__init__(roi)
         self._fig, ax_x = plt.subplots(figsize=(5, 2), dpi=100)
 
-        line_x, = ax_x.plot([], [], 'o')
+        sc_x = ax_x.scatter([], [])
         ax_x.set(
             xlabel="x [um]",
             ylabel="y [um]"
         )
         self._fig.tight_layout()
-        self._artists = [line_x]
+        self._artists = [sc_x]
 
     def _update(self, results: ModeSolverResults):
-        line_x, = self._artists
-        ax = line_x.axes
+        sc_x, = self._artists
         x, y = results.x_eq[:, 0:2].T * 1e6
-        line_x.set_data(x, y)
-        ax.relim()
-        ax.autoscale_view()
+        _update_ions_scatter(sc_x, x, y, results.ions)
 
 
 class AxialPotentialPlotter(Plotter):
@@ -93,17 +106,17 @@ class AxialPotentialPlotter(Plotter):
     def __init__(self, roi):
         super().__init__(roi)
         self._fig, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
-        line_pot, = ax_pot.plot([], [], marker='none', ls='-')
-        line_ions, = ax_pot.plot([], [], 'oC3')
+        line_pot, = ax_pot.plot([], [], color='k', marker='none', ls='-')
+        sc_ions = ax_pot.scatter([], [])
         ax_pot.set(
             xlabel="x [um]",
             ylabel="$\\phi$ [V]"
         )
         self._fig.tight_layout()
-        self._artists = [line_pot, line_ions]
+        self._artists = [line_pot, sc_ions]
 
     def _update(self, results):
-        line_pot, line_ions = self._artists
+        line_pot, sc_ions = self._artists
         ax = line_pot.axes
         X = self._roi._xyz()
         X = np.stack(X, axis=1)
@@ -114,7 +127,7 @@ class AxialPotentialPlotter(Plotter):
         x_eq = results.x_eq[:, 0]
         pot_eq = results.pot_eq
         line_pot.set_data(x * 1e6, pot)
-        line_ions.set_data(x_eq * 1e6, pot_eq)
+        _update_ions_scatter(sc_ions, x_eq * 1e6, pot_eq, results.ions)
         ax.relim()
         ax.autoscale_view()
 
@@ -123,11 +136,7 @@ class RadialPotentialPlotter(Plotter):
 
     def __init__(self, roi):
         super().__init__(roi)
-        self._fig, self._ax = plt.subplots(figsize=(3, 3), dpi=100)
-        self._ax.set(
-            xlabel="y [um]",
-            ylabel="z [um]",
-        )
+        self._fig, self._ax = plt.subplots(figsize=(3.5, 3.5), dpi=100)
         self._fig.tight_layout()
 
     def _update(self, results):
@@ -140,8 +149,14 @@ class RadialPotentialPlotter(Plotter):
         y_eq, z_eq = results.x_eq[:, 1:3].T
         pot = results.pot.potential(X, 1).reshape(shape)
         self._ax.clear()
+        sc = self._ax.scatter([], [])
+        _update_ions_scatter(sc, y_eq * 1e6, z_eq * 1e6, results.ions)
         self._ax.contour(y * 1e6, z * 1e6, pot, 50)
-        self._ax.plot(y_eq * 1e6, z_eq * 1e6, 'oC3')
+        self._ax.set(
+            xlabel="y [um]",
+            ylabel="z [um]",
+            aspect=1,
+        )
 
 
 class PlotDashboard:
