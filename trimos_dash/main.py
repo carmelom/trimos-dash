@@ -109,7 +109,7 @@ class ModeSolverDashboard:
 
 def main():
 
-    PORT = 8001
+    PORT = 8475
     saver = Saver('settings/mode_solver_settings.json')
     dashboard = saver(ModeSolverDashboard)()
     slapdash.run(dashboard,
