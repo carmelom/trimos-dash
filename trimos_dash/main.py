@@ -8,6 +8,7 @@
 Module docstring
 '''
 import os
+import argparse
 import slapdash
 from slapdash import Saver, trigger_update
 
@@ -108,13 +109,14 @@ class ModeSolverDashboard:
 
 
 def main():
-
-    PORT = 8475
+    parser = argparse.ArgumentParser()
+    parser.add_argument('PORT', help='Port number', type=int)
+    args = parser.parse_args()
     saver = Saver('settings/mode_solver_settings.json')
     dashboard = saver(ModeSolverDashboard)()
     slapdash.run(dashboard,
                  host='0.0.0.0',
-                 port=PORT,
+                 port=args.PORT,
                  css=os.path.join(os.getcwd(), 'custom.css')
                  )
 
