@@ -13,6 +13,8 @@ class Ions(Enum):
     CA40 = 'Ca40'
     BE9 = 'Be9'
     MG24 = 'Mg24'
+    BA137 = 'Ba137'
+    YB171 = 'Yb171'
 
     def _get_ion(self):
         return getattr(mions, self.value)
