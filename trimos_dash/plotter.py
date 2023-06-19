@@ -23,7 +23,9 @@ def _fig_to_str(fig):
 ion_colors = {
     'Ca40': 'C3',
     'Be9': 'C0',
-    'Mg24': 'cyan'
+    'Mg24': 'cyan',
+    'Ba137': 'purple',
+    'Yb171': 'black'
 }
 
 
