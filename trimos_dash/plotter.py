@@ -36,6 +36,9 @@ def _update_ions_scatter(scatter, x, y, ions):
     ax.ignore_existing_data_limits = True
     ax.update_datalim(scatter.get_datalim(ax.transData))
     ax.autoscale_view()
+    
+def _average_mass(ions):
+    return np.asarray([ion.mass_amu for ion in ions]).mean()
 
 
 class PlotROI:
@@ -125,7 +128,8 @@ class AxialPotentialPlotter(Plotter):
         x, y, z = X.T.copy()
 
         X[:, 1:3] = 0
-        pot = results.pot.potential(X, 1)
+        m = _average_mass(results.ions)
+        pot = results.pot.potential(X, m)
         x_eq = results.x_eq[:, 0]
         pot_eq = results.pot_eq
         line_pot.set_data(x * 1e6, pot)
@@ -149,7 +153,8 @@ class RadialPotentialPlotter(Plotter):
         x1 = np.ones_like(y1) * self._roi.x_slice
         X = np.stack([x1, y1, z1], axis=1)
         y_eq, z_eq = results.x_eq[:, 1:3].T
-        pot = results.pot.potential(X, 1).reshape(shape)
+        m = _average_mass(results.ions)
+        pot = results.pot.potential(X, m).reshape(shape)
         self._ax.clear()
         sc = self._ax.scatter([], [])
         _update_ions_scatter(sc, y_eq * 1e6, z_eq * 1e6, results.ions)
