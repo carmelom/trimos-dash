@@ -16,16 +16,16 @@ from io import BytesIO
 
 def _fig_to_str(fig):
     tmpfile = BytesIO()
-    fig.savefig(tmpfile, format='png')
-    return base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+    fig.savefig(tmpfile, format="png")
+    return base64.b64encode(tmpfile.getvalue()).decode("utf-8")
 
 
 ion_colors = {
-    'Ca40': 'C3',
-    'Be9': 'C0',
-    'Mg24': 'cyan',
-    'Ba137': 'purple',
-    'Yb171': 'black'
+    "Ca40": "C3",
+    "Be9": "C0",
+    "Mg24": "cyan",
+    "Ba137": "purple",
+    "Yb171": "black",
 }
 
 
@@ -36,7 +36,8 @@ def _update_ions_scatter(scatter, x, y, ions):
     ax.ignore_existing_data_limits = True
     ax.update_datalim(scatter.get_datalim(ax.transData))
     ax.autoscale_view()
-    
+
+
 def _average_mass(ions):
     return np.asarray([ion.mass_amu for ion in ions]).mean()
 
@@ -50,8 +51,16 @@ class PlotROI:
     _num: int = 60
 
     _metadata = {
-        'x': {"units": "um"}, 'y': {"units": "um"}, 'z': {"units": "um"},
-        'x_slice': {'min': -100, 'max': 100, 'step': 0.1, 'units': 'um', 'renderAs': 'slider'},
+        "x": {"units": "um"},
+        "y": {"units": "um"},
+        "z": {"units": "um"},
+        "x_slice": {
+            "min": -100,
+            "max": 100,
+            "step": 0.1,
+            "units": "um",
+            "renderAs": "slider",
+        },
     }
 
     def _xyz(self):
@@ -68,7 +77,7 @@ class Plotter:
     _artists: list = []
 
     _metadata = {
-        'plot': {"renderAs": 'image'},
+        "plot": {"renderAs": "image"},
     }
 
     def __init__(self, roi: PlotROI):
@@ -87,36 +96,28 @@ class Plotter:
 
 
 class EquilibriumPositionPlotter(Plotter):
-
     def __init__(self, roi):
         super().__init__(roi)
         self._fig, ax_x = plt.subplots(figsize=(5, 2), dpi=100)
 
         sc_x = ax_x.scatter([], [])
-        ax_x.set(
-            xlabel="x [um]",
-            ylabel="y [um]"
-        )
+        ax_x.set(xlabel="x [um]", ylabel="y [um]")
         self._fig.tight_layout()
         self._artists = [sc_x]
 
     def _update(self, results: ModeSolverResults):
-        sc_x, = self._artists
+        (sc_x,) = self._artists
         x, y = results.x_eq[:, 0:2].T * 1e6
         _update_ions_scatter(sc_x, x, y, results.ions)
 
 
 class AxialPotentialPlotter(Plotter):
-
     def __init__(self, roi):
         super().__init__(roi)
         self._fig, ax_pot = plt.subplots(figsize=(5, 2), dpi=100)
-        line_pot, = ax_pot.plot([], [], color='k', marker='none', ls='-')
+        (line_pot,) = ax_pot.plot([], [], color="k", marker="none", ls="-")
         sc_ions = ax_pot.scatter([], [])
-        ax_pot.set(
-            xlabel="x [um]",
-            ylabel="$\\phi$ [V]"
-        )
+        ax_pot.set(xlabel="x [um]", ylabel="$\\phi$ [V]")
         self._fig.tight_layout()
         self._artists = [line_pot, sc_ions]
 
@@ -139,7 +140,6 @@ class AxialPotentialPlotter(Plotter):
 
 
 class RadialPotentialPlotter(Plotter):
-
     def __init__(self, roi):
         super().__init__(roi)
         self._fig, self._ax = plt.subplots(figsize=(3.5, 3.5), dpi=100)
@@ -166,6 +166,67 @@ class RadialPotentialPlotter(Plotter):
         )
 
 
+class ThreeDPotentialPlotter(Plotter):
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._fig = plt.figure(figsize=(3.5, 3.5), dpi=100)
+        self._ax = self._fig.add_subplot(111, projection="3d")
+        self._fig.tight_layout()
+
+    def _ravel_coords(self, *args):
+        args = np.broadcast_arrays(*args)
+        shape = args[0].shape
+        args = list(map(np.ravel, args))
+        X = np.stack(args, axis=1).astype(float)
+        return shape, X
+
+    def _update(self, results):
+        self._ax.clear()
+
+        m = _average_mass(results.ions)
+
+        def _fun(x, y, z):
+            shape, X = self._ravel_coords(x, y, z)
+            return results.pot.potential(X, m).reshape(shape)
+
+        _kwargs = dict(levels=30, cmap="coolwarm", alpha=0.65, zorder=-1)
+
+        x, y, z = self._roi._xyz()
+        x0, y0, z0 = results.x_eq.mean(axis=0)
+
+        X, Y = np.meshgrid(x, y)
+        xy_slice = _fun(X, Y, z0)
+        self._ax.contour(
+            x * 1e6, y * 1e6, xy_slice, zdir="z", offset=z.min() * 1e6, **_kwargs
+        )
+
+        Y, Z = np.meshgrid(y, z)
+        yz_slice = _fun(x0, Y, Z)
+        self._ax.contour(
+            yz_slice, y * 1e6, z * 1e6, zdir="x", offset=x.min() * 1e6, **_kwargs
+        )
+
+        Z, X = np.meshgrid(z, x)
+        xz_slice = _fun(X, y0, Z)
+        self._ax.contour(
+            x * 1e6, xz_slice, z * 1e6, zdir="y", offset=y.max() * 1e6, **_kwargs
+        )
+
+        x1, y1, z1 = results.x_eq.T
+        col = [ion_colors[str(c)] for c in results.ions]
+        self._ax.scatter(x1 * 1e6, y1 * 1e6, z1 * 1e6, color=col)
+
+        self._ax.set(
+            xlabel="x [um]",
+            ylabel="y [um]",
+            zlabel="z [um]",
+            xlim=(x.min() * 1e6, x.max() * 1e6),
+            ylim=(y.min() * 1e6, y.max() * 1e6),
+            zlim=(z.min() * 1e6, z.max() * 1e6),
+            aspect="equal",
+        )
+
+
 class PlotDashboard:
     _results: ModeSolverResults = None
 
@@ -174,9 +235,12 @@ class PlotDashboard:
         self.equilibrium_position = EquilibriumPositionPlotter(self.roi)
         self.axial_potential = AxialPotentialPlotter(self.roi)
         self.radial_potential = RadialPotentialPlotter(self.roi)
+        self.plot_3d = ThreeDPotentialPlotter(self.roi)
 
         self._plotters = []
-        for _, plotter in inspect.getmembers(self, lambda obj: isinstance(obj, Plotter)):
+        for _, plotter in inspect.getmembers(
+            self, lambda obj: isinstance(obj, Plotter)
+        ):
             self._plotters.append(plotter)
 
     def _update(self, results: ModeSolverResults):
