@@ -13,13 +13,6 @@ from slapdash import trigger_update
 import base64
 from io import BytesIO
 
-
-def _fig_to_str(fig):
-    tmpfile = BytesIO()
-    fig.savefig(tmpfile, format="png")
-    return base64.b64encode(tmpfile.getvalue()).decode("utf-8")
-
-
 ion_colors = {
     "Ca40": "C3",
     "Be9": "C0",
@@ -27,6 +20,12 @@ ion_colors = {
     "Ba137": "purple",
     "Yb171": "black",
 }
+
+
+def _fig_to_str(fig):
+    tmpfile = BytesIO()
+    fig.savefig(tmpfile, format="png")
+    return base64.b64encode(tmpfile.getvalue()).decode("utf-8")
 
 
 def _update_ions_scatter(scatter, x, y, ions):
@@ -40,6 +39,35 @@ def _update_ions_scatter(scatter, x, y, ions):
 
 def _average_mass(ions):
     return np.asarray([ion.mass_amu for ion in ions]).mean()
+
+
+def _ravel_coords(*args):
+    args = np.broadcast_arrays(*args)
+    shape = args[0].shape
+    args = list(map(np.ravel, args))
+    X = np.stack(args, axis=1).astype(float)
+    return shape, X
+
+
+def _project_on_single_ion_modes(
+    mode_vectors, single_ion_modes=np.eye(3), keys=["x", "y", "z"]
+):
+    # projections of normal modes on single-ion eigenmodes
+    proj = abs(np.einsum("Mai,mi", mode_vectors, single_ion_modes)).sum(1)
+    mode1_index = np.argmax(proj, axis=1)
+
+    mode_vectors_projected = np.asarray(
+        [
+            mode_vectors[j] @ single_ion_modes[mode1_index[j]]
+            for j in range(len(mode_vectors))
+        ]
+    )
+    mode_labels = {}
+    keys = "xyz" if keys is None else keys
+    for j, key in enumerate(keys):
+        mode_labels[key] = np.where(mode1_index == j)[0]
+
+    return mode_vectors_projected, mode_labels
 
 
 class PlotROI:
@@ -173,20 +201,13 @@ class ThreeDPotentialPlotter(Plotter):
         self._ax = self._fig.add_subplot(111, projection="3d")
         self._fig.tight_layout()
 
-    def _ravel_coords(self, *args):
-        args = np.broadcast_arrays(*args)
-        shape = args[0].shape
-        args = list(map(np.ravel, args))
-        X = np.stack(args, axis=1).astype(float)
-        return shape, X
-
     def _update(self, results):
         self._ax.clear()
 
         m = _average_mass(results.ions)
 
         def _fun(x, y, z):
-            shape, X = self._ravel_coords(x, y, z)
+            shape, X = _ravel_coords(x, y, z)
             return results.pot.potential(X, m).reshape(shape)
 
         _kwargs = dict(levels=30, cmap="coolwarm", alpha=0.65, zorder=-1)
@@ -227,6 +248,56 @@ class ThreeDPotentialPlotter(Plotter):
         )
 
 
+class ModeFreqsPlotter(Plotter):
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._fig, self._ax = plt.subplots(figsize=(7, 2), dpi=100)
+
+    def _update(self, results):
+        self._ax.clear()
+        mode_freqs = results.mode_freqs
+        mode_vectors = results.mode_vectors
+
+        _, mode_labels = _project_on_single_ion_modes(mode_vectors)
+
+        for j, (key, ix) in enumerate(mode_labels.items()):
+            f = mode_freqs[ix]
+            self._ax.vlines(f, 0, 1, label=key, color=f"C{j}")
+        self._ax.legend()
+
+
+class ModePartecipationsPlotter(Plotter):
+    def __init__(self, roi):
+        super().__init__(roi)
+        self._figsize = (7, 2)
+        self._fig, self._ax = plt.subplots(figsize=self._figsize, dpi=100)
+
+    def _update(self, results):
+        mode_vectors = results.mode_vectors
+        mode_vectors_proj, mode_labels = _project_on_single_ion_modes(
+            mode_vectors, keys=["x", "y", "z"]
+        )
+
+        # --- plot
+
+        cols = [ion_colors[str(c)] for c in results.ions]
+        nn = len(results.ions)
+
+        plot_modes = ["x", "y"]
+        mosaic = [[f"{mode}_{j}" for j in range(nn)] for mode in plot_modes]
+        self._fig, axes = plt.subplot_mosaic(
+            mosaic, figsize=self._figsize, dpi=100, sharey=True, sharex=True
+        )
+
+        for mode in plot_modes:
+            mode_vectors_1 = mode_vectors_proj[mode_labels[mode]]
+            for j in range(nn):
+                m = mode_vectors_1[j]
+                ax = axes[f"{mode}_{j}"]
+                ax.bar(np.arange(1, len(m) + 1), m, color=cols)
+                ax.axhline(0, color="k", lw=0.75, zorder=-1)
+
+
 class PlotDashboard:
     _results: ModeSolverResults = None
 
@@ -236,6 +307,8 @@ class PlotDashboard:
         self.axial_potential = AxialPotentialPlotter(self.roi)
         self.radial_potential = RadialPotentialPlotter(self.roi)
         self.plot_3d = ThreeDPotentialPlotter(self.roi)
+        self.mode_frequencies = ModeFreqsPlotter(self.roi)
+        self.mode_partecipations = ModePartecipationsPlotter(self.roi)
 
         self._plotters = []
         for _, plotter in inspect.getmembers(

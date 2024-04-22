@@ -32,6 +32,10 @@
     flex-basis: 30%;
 }
 
+[id="plots"] {
+    flex-basis: 100%
+}
+
 [id="plots"] .group {
     flex-basis: 45%
 }
@@ -62,4 +66,10 @@
 
 [id^="field_parameters.field_"] {
     flex-basis: 30%;
+}
+
+[id^="plots.mode_frequencies"] {
+    max-width: unset;
+    width: 100%;
+    flex-basis: 100%;
 }

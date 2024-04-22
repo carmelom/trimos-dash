@@ -1,1 +1,8 @@
-{}
+{
+    "ion_string": "Ca40 * 8",
+    "trap_parameters": {
+        "fx": 0.2,
+        "fy": 2.0,
+        "fz": 3.0
+    }
+}
