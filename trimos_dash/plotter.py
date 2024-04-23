@@ -9,17 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from trimos.results import ModeSolverResults
 from slapdash import trigger_update
+from .ions import ion_colors
 
 import base64
 from io import BytesIO
-
-ion_colors = {
-    "Ca40": "C3",
-    "Be9": "C0",
-    "Mg24": "cyan",
-    "Ba137": "purple",
-    "Yb171": "black",
-}
 
 
 def _fig_to_str(fig):
@@ -235,7 +228,7 @@ class ThreeDPotentialPlotter(Plotter):
 
         x1, y1, z1 = results.x_eq.T
         col = [ion_colors[str(c)] for c in results.ions]
-        self._ax.scatter(x1 * 1e6, y1 * 1e6, z1 * 1e6, color=col)
+        self._ax.scatter(x1 * 1e6, y1 * 1e6, z1 * 1e6, color=col, zorder=99)
 
         self._ax.set(
             xlabel="x [um]",

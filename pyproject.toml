@@ -9,7 +9,7 @@ authors = ["Carmelo Mordini <cmordini@phys.ethz.ch>"]
 python = ">=3.9,<3.12"
 slapdash = "^1.0.1"
 matplotlib = "^3.7.1"
-pyqt5 = "^5.15.9"
+pyqt6 = "^6.6.1"
 trimos = {git = "https://github.com/carmelom/trimos.git"}
 
 [tool.poetry.dev-dependencies]

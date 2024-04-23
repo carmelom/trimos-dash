@@ -4,9 +4,9 @@
 # Created: 04/2023
 # Author: Carmelo Mordini <cmordini@phys.ethz.ch>
 
-'''
+"""
 Module docstring
-'''
+"""
 import os
 import argparse
 import slapdash
@@ -20,20 +20,18 @@ from .plotter import PlotDashboard
 
 
 class HarmonicTrapParameters:
-
     fx: float = 1.0
     fy: float = 1.1
     fz: float = 3.0
     target_ion: Ions = Ions.CA40
 
-    _metadata = {f"f{j}": {"units": 'MHz'} for j in 'xyz'}
+    _metadata = {f"f{j}": {"units": "MHz"} for j in "xyz"}
 
     def _freqs(self):
-        return [getattr(self, f"f{j}") * 1e6 for j in 'xyz']
+        return [getattr(self, f"f{j}") * 1e6 for j in "xyz"]
 
 
 class FieldParameters:
-
     add_field: bool = False
     field_x: float = 0.0
     field_y: float = 0.0
@@ -46,7 +44,6 @@ class FieldParameters:
 
 
 class CubicParameters:
-
     add_cubic: bool = False
     cubic_x: float = 0.0
 
@@ -54,7 +51,6 @@ class CubicParameters:
 
 
 class QuarticParameters:
-
     add_quartic: bool = False
     quartic_x: float = 0.0
 
@@ -62,11 +58,10 @@ class QuarticParameters:
 
 
 class ModeSolverDashboard:
-
     _mode_report: str = ""
 
     _metadata = {
-        'mode_report': {"renderAs": 'textarea'},
+        "mode_report": {"renderAs": "textarea"},
     }
 
     def __init__(self):
@@ -98,7 +93,7 @@ class ModeSolverDashboard:
         self._results = mode_solver(pot, ions, x0)
         self.plots._update(self._results)
         self._mode_report = repr(self._results)
-        print('solve done')
+        print("solve done")
 
     @property
     def mode_report(self) -> str:
@@ -110,15 +105,16 @@ class ModeSolverDashboard:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('PORT', help='Port number', type=int)
+    parser.add_argument("PORT", help="Port number", type=int)
     args = parser.parse_args()
-    saver = Saver('settings/mode_solver_settings.json')
+    saver = Saver("settings/mode_solver_settings.json")
     dashboard = saver(ModeSolverDashboard)()
-    slapdash.run(dashboard,
-                 host='0.0.0.0',
-                 port=args.PORT,
-                 css=os.path.join(os.getcwd(), 'custom.css')
-                 )
+    slapdash.run(
+        dashboard,
+        host="0.0.0.0",
+        port=args.PORT,
+        css=os.path.join(os.getcwd(), "custom.css"),
+    )
 
 
 if __name__ == "__main__":

@@ -10,14 +10,25 @@ from trimos import ions as mions
 
 
 class Ions(Enum):
-    CA40 = 'Ca40'
-    BE9 = 'Be9'
-    MG24 = 'Mg24'
-    BA137 = 'Ba137'
-    YB171 = 'Yb171'
+    CA40 = "Ca40"
+    BE9 = "Be9"
+    MG24 = "Mg24"
+    SR88 = "Sr88"
+    BA137 = "Ba137"
+    YB171 = "Yb171"
 
     def _get_ion(self):
         return getattr(mions, self.value)
+
+
+ion_colors = {
+    "Ca40": "C3",
+    "Be9": "C0",
+    "Mg24": "cyan",
+    "Sr88": "violet",
+    "Ba137": "purple",
+    "Yb171": "black",
+}
 
 
 def parse_ion_string(ion_string):
