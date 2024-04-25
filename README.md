@@ -8,11 +8,13 @@ A dashboard to visualize normal modes of trapped ions - powered by [trimos](http
 
 ## Usage
 
-    poetry run trimos_dash
+    poetry run trimos_dash [--port PORT]
+
+Run the command, optionally specifying the port number for the web application (default: 8050). Then browse to <http://localhost:8050>
 
 ## Authors and acknowledgment
 
-- Carmelo Mordini & the TIQI group
+- Carmelo Mordini & the TIQI group at ETH Zurich
 
 ## License
 
@@ -20,7 +22,10 @@ MIT
 
 ## Makefile targets
 
-- `install`: install the required dependencies using poetry. On Windows, run `poetry install`.
-- `run`: run the dashboard. On Windows, `poetry run python trimos_dash`.
+Mostly Linux-oriented, although make exists on Windows too.
+
+- `install`: install the project and the required dependencies using poetry.
+- `run`: run the dashboard.
 - `clean`: removes poetry lockfile and virtual environment.
-- `services` (Unix only): create and install a unit service file to run the dashboard server via `systemctl`.
+- `nohup_run`: run the dashboard in background via `nohup`.
+- `nouhp_kill`: kills the background process.

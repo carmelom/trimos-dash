@@ -105,14 +105,14 @@ class ModeSolverDashboard:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("PORT", help="Port number", type=int)
+    parser.add_argument("-p", "--port", help="Port number", type=int, default=8050)
     args = parser.parse_args()
     saver = Saver("settings/settings.json")
     dashboard = saver(ModeSolverDashboard)()
     slapdash.run(
         dashboard,
         host="0.0.0.0",
-        port=args.PORT,
+        port=args.port,
         css=os.path.join(os.getcwd(), "custom.css"),
     )
 
