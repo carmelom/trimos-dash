@@ -2,6 +2,11 @@
 
 A dashboard to visualize normal modes of trapped ions - powered by [trimos](https://github.com/carmelom/trimos) and [slapdash](https://github.com/cathaychris/slapdash)
 
+## Requirements
+
+- python >=3.9, <3.12
+- [poetry](https://python-poetry.org/)
+
 ## Installation
 
     poetry install

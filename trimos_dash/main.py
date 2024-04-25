@@ -11,6 +11,7 @@ import os
 import argparse
 import slapdash
 from slapdash import Saver, trigger_update
+from pathlib import Path
 
 from trimos import potential as mpot
 from trimos.solver import init_crystal
@@ -87,7 +88,6 @@ class ModeSolverDashboard:
             pot = pot + mpot.QuarticPotential(self.quartic_parameters.quartic_x * 1e18)
 
         ions = parse_ion_string(self.ion_string)
-        # roi = (400e-6, 30e-6, 30e-6)
         n_ions = len(ions)
         x0 = init_crystal((0, 0, 0), dx=5e-6, n_ions=n_ions)
         self._results = mode_solver(pot, ions, x0)
@@ -103,11 +103,21 @@ class ModeSolverDashboard:
         return "Mode Solver"
 
 
+def touch_settings(settings_path: str):
+    settings_path = Path(settings_path)
+    if not settings_path.exists():
+        settings_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(settings_path, "w") as f:
+            f.write("{}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--port", help="Port number", type=int, default=8050)
     args = parser.parse_args()
-    saver = Saver("settings/settings.json")
+    settings_path = "settings/settings.json"
+    touch_settings(settings_path)
+    saver = Saver(settings_path)
     dashboard = saver(ModeSolverDashboard)()
     slapdash.run(
         dashboard,
