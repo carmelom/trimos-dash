@@ -68,7 +68,7 @@
     flex-basis: 30%;
 }
 
-[id^="plots.mode_frequencies"] {
+[id^="plots.mode_"] {
     max-width: unset;
     width: 100%;
     flex-basis: 100%;

@@ -163,8 +163,9 @@ class AxialPotentialPlotter(Plotter):
 class RadialPotentialPlotter(Plotter):
     def __init__(self, roi):
         super().__init__(roi)
-        self._fig, self._ax = plt.subplots(figsize=(3.5, 3.5), dpi=100)
-        self._fig.tight_layout()
+        self._fig, self._ax = plt.subplots(
+            figsize=(3.5, 3.5), dpi=100, layout="constrained"
+        )
 
     def _update(self, results):
         x, y, z = self._roi._xyz()
@@ -190,9 +191,16 @@ class RadialPotentialPlotter(Plotter):
 class ThreeDPotentialPlotter(Plotter):
     def __init__(self, roi):
         super().__init__(roi)
-        self._fig = plt.figure(figsize=(3.5, 3.5), dpi=100)
-        self._ax = self._fig.add_subplot(111, projection="3d")
-        self._fig.tight_layout()
+        self._fig = plt.figure(
+            figsize=(3.8, 3.8),
+            dpi=100,
+            layout="constrained",
+        )
+        self._ax = self._fig.add_subplot(
+            111,
+            projection="3d",
+            computed_zorder=False,
+        )
 
     def _update(self, results):
         self._ax.clear()
@@ -244,7 +252,9 @@ class ThreeDPotentialPlotter(Plotter):
 class ModeFreqsPlotter(Plotter):
     def __init__(self, roi):
         super().__init__(roi)
-        self._fig, self._ax = plt.subplots(figsize=(7, 2), dpi=100)
+        self._fig, self._ax = plt.subplots(
+            figsize=(7, 2.3), dpi=100, layout="constrained"
+        )
 
     def _update(self, results):
         self._ax.clear()
@@ -255,17 +265,22 @@ class ModeFreqsPlotter(Plotter):
 
         for j, (key, ix) in enumerate(mode_labels.items()):
             f = mode_freqs[ix]
-            self._ax.vlines(f, 0, 1, label=key, color=f"C{j}")
+            self._ax.vlines(f * 1e-6, 0, 1, label=key, color=f"C{j}", lw=2)
         self._ax.legend()
+
+        self._ax.set(xlabel="Mode frequencies [MHz]", yticks=[])
 
 
 class ModePartecipationsPlotter(Plotter):
     def __init__(self, roi):
         super().__init__(roi)
-        self._figsize = (7, 2)
-        self._fig, self._ax = plt.subplots(figsize=self._figsize, dpi=100)
+        self._figsize = (7, 2.3)
+        self._fig, self._ax = plt.subplots(
+            figsize=self._figsize, dpi=100, layout="constrained"
+        )
 
     def _update(self, results):
+        mode_freqs = results.mode_freqs
         mode_vectors = results.mode_vectors
         mode_vectors_proj, mode_labels = _project_on_single_ion_modes(
             mode_vectors, keys=["x", "y", "z"]
@@ -279,16 +294,33 @@ class ModePartecipationsPlotter(Plotter):
         plot_modes = ["x", "y"]
         mosaic = [[f"{mode}_{j}" for j in range(nn)] for mode in plot_modes]
         self._fig, axes = plt.subplot_mosaic(
-            mosaic, figsize=self._figsize, dpi=100, sharey=True, sharex=True
+            mosaic,
+            figsize=self._figsize,
+            dpi=100,
+            sharey=True,
+            sharex=True,
+            layout="constrained",
         )
 
         for mode in plot_modes:
+            mode_freqs_1 = mode_freqs[mode_labels[mode]]
             mode_vectors_1 = mode_vectors_proj[mode_labels[mode]]
+            axes[f"{mode}_0"].set(ylabel=f"{mode} modes")
             for j in range(nn):
+                f = mode_freqs_1[j]
                 m = mode_vectors_1[j]
                 ax = axes[f"{mode}_{j}"]
                 ax.bar(np.arange(1, len(m) + 1), m, color=cols)
+                ax.text(
+                    0.2,
+                    0.8,
+                    f"{f*1e-6:.2f}",
+                    transform=ax.transAxes,
+                    ha="center",
+                    size=7,
+                )
                 ax.axhline(0, color="k", lw=0.75, zorder=-1)
+                ax.set(xticks=[1, len(m)], xticklabels=[])
 
 
 class PlotDashboard:

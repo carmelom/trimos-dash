@@ -107,7 +107,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("PORT", help="Port number", type=int)
     args = parser.parse_args()
-    saver = Saver("settings/mode_solver_settings.json")
+    saver = Saver("settings/settings.json")
     dashboard = saver(ModeSolverDashboard)()
     slapdash.run(
         dashboard,
